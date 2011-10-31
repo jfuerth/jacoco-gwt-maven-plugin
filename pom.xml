@@ -17,10 +17,9 @@
     <groupId>org.jacoco</groupId>
     <artifactId>org.jacoco.build</artifactId>
     <version>0.5.4-SNAPSHOT</version>
-    <relativePath>../org.jacoco.build</relativePath>
   </parent>
 
-  <artifactId>jacoco-maven-plugin</artifactId>
+  <artifactId>jacoco-gwt-maven-plugin</artifactId>
   <packaging>maven-plugin</packaging>
 
   <name>JaCoCo :: Maven Plugin</name>
@@ -64,8 +63,6 @@
   </dependencies>
 
   <build>
-    <sourceDirectory>src</sourceDirectory>
-
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -91,6 +88,15 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
+          </archive>
+        </configuration>
       </plugin>
     </plugins>
     <pluginManagement>

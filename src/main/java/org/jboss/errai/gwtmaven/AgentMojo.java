@@ -9,7 +9,7 @@
  *    Evgeny Mandrikov - initial API and implementation
  *
  *******************************************************************************/
-package org.jacoco.maven;
+package org.jboss.errai.gwtmaven;
 
 import java.io.File;
 import java.util.Map;
