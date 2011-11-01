@@ -22,68 +22,67 @@ import org.apache.maven.project.MavenProject;
  */
 public abstract class AbstractJacocoMojo extends AbstractMojo {
 
-	/**
-	 * Maven project.
-	 * 
-	 * @parameter expression="${project}"
-	 * @readonly
-	 */
-	private MavenProject project;
+  /**
+   * Maven project.
+   * 
+   * @parameter expression="${project}"
+   * @readonly
+   */
+  private MavenProject project;
 
-	/**
-	 * A list of class files to include in instrumentation/analysis/reports. May
-	 * use wildcard characters (* and ?). When not specified - everything will
-	 * be included.
-	 * 
-	 * @parameter expression="${jacoco.includes}"
-	 */
-	private List<String> includes;
+  /**
+   * A list of class files to include in instrumentation/analysis/reports. May
+   * use wildcard characters (* and ?). When not specified - everything will be
+   * included.
+   * 
+   * @parameter expression="${jacoco.includes}"
+   */
+  private List<String> includes;
 
-	/**
-	 * A list of class files to exclude from instrumentation/analysis/reports.
-	 * May use wildcard characters (* and ?).
-	 * 
-	 * @parameter expression="${jacoco.excludes}"
-	 */
-	private List<String> excludes;
+  /**
+   * A list of class files to exclude from instrumentation/analysis/reports. May
+   * use wildcard characters (* and ?).
+   * 
+   * @parameter expression="${jacoco.excludes}"
+   */
+  private List<String> excludes;
 
-	/**
-	 * Flag used to suppress execution.
-	 * 
-	 * @parameter expression="${jacoco.skip}" default-value="false"
-	 */
-	private boolean skip;
+  /**
+   * Flag used to suppress execution.
+   * 
+   * @parameter expression="${jacoco.skip}" default-value="false"
+   */
+  private boolean skip;
 
-	public final void execute() {
-		if ("pom".equals(project.getPackaging())) {
-			getLog().info(
-					"Skipping JaCoCo for project with packaging type 'pom'");
-			return;
-		}
-		if (skip) {
-			getLog().info("Skipping JaCoCo execution");
-			return;
-		}
-		executeMojo();
-	}
+  public final void execute() {
+    if ("pom".equals(project.getPackaging())) {
+      getLog().info("Skipping JaCoCo for project with packaging type 'pom'");
+      return;
+    }
+    if (skip) {
+      getLog().info("Skipping JaCoCo execution");
+      return;
+    }
+    executeMojo();
+  }
 
-	/**
-	 * Executes Mojo.
-	 */
-	protected abstract void executeMojo();
+  /**
+   * Executes Mojo.
+   */
+  protected abstract void executeMojo();
 
-	/**
-	 * @return Maven project
-	 */
-	protected final MavenProject getProject() {
-		return project;
-	}
+  /**
+   * @return Maven project
+   */
+  protected final MavenProject getProject() {
+    return project;
+  }
 
-	protected List<String> getIncludes() {
-		return includes;
-	}
+  protected List<String> getIncludes() {
+    return includes;
+  }
 
-	protected List<String> getExcludes() {
-		return excludes;
-	}
+  protected List<String> getExcludes() {
+    return excludes;
+  }
 }
