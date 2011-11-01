@@ -7,6 +7,7 @@
  *
  * Contributors:
  *    Evgeny Mandrikov - initial API and implementation
+ *    Jonathan Fuerth - additional class snapshot agent and GWT support
  *
  *******************************************************************************/
 package org.jboss.errai.gwtmaven;

@@ -1,3 +1,15 @@
+/*******************************************************************************
+ * Copyright (c) 2011 Red Hat and Contributors
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Jonathan Fuerth - additional class snapshot agent and GWT support
+ *
+ *******************************************************************************/
+
 package org.jboss.errai.gwtmaven;
 
 import java.io.File;
@@ -58,8 +70,9 @@ public class ClassSnapshotSaver implements ClassFileTransformer {
       ProtectionDomain protectionDomain, byte[] classBytes) throws IllegalClassFormatException {
     
     try {
-      if (classLoaderPattern.matcher(classname).matches()) {
-        System.out.println("Taking snapshot of " + classname);
+      String loaderClassname = loader == null ? "" : loader.getClass().getName();
+      if (classLoaderPattern.matcher(loaderClassname).matches()) {
+        System.out.println("Taking snapshot of " + loaderClassname + ":" + classname);
         saveSnapshot(classname, classBytes);
       }
     } catch (Throwable e) {
