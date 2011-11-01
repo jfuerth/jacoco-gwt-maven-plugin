@@ -12,9 +12,16 @@
  *******************************************************************************/
 package org.jboss.errai.gwtmaven;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
@@ -25,7 +32,11 @@ import org.jacoco.core.analysis.ICoverageNode;
 import org.jacoco.core.data.ExecutionDataReader;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.jacoco.core.data.SessionInfoStore;
-import org.jacoco.report.*;
+import org.jacoco.report.FileMultiReportOutput;
+import org.jacoco.report.IReportGroupVisitor;
+import org.jacoco.report.IReportVisitor;
+import org.jacoco.report.ISourceFileLocator;
+import org.jacoco.report.MultiReportVisitor;
 import org.jacoco.report.csv.CSVFormatter;
 import org.jacoco.report.html.HTMLFormatter;
 import org.jacoco.report.xml.XMLFormatter;
@@ -68,6 +79,13 @@ public class ReportMojo extends AbstractJacocoMojo {
 	 * @parameter default-value="${project.build.directory}/jacoco.exec"
 	 */
 	private File dataFile;
+
+	/**
+     * Base directory where runtime class snapshots were saved by the snapshot agent.
+     * 
+     * @parameter default-value="${project.build.directory}/snapshot-classes"
+     */
+    private File snapshotDirectory;
 
 	private SessionInfoStore sessionInfoStore;
 
@@ -231,7 +249,24 @@ public class ReportMojo extends AbstractJacocoMojo {
 		} else {
 			excludes = "";
 		}
-		return FileUtils.getFiles(rootDir, includes, excludes);
+		
+		// build two collections of relative pathnames
+		List<?> originalClasses = FileUtils.getFiles(rootDir, includes, excludes, false);
+		Set<File> snapshotClases = new HashSet<File>(FileUtils.getFiles(snapshotDirectory, "**", "", false));
+		
+		// now build one list of absolute pathnames, using items from the snapshot list where they exist
+		List<File> filesToAnalyze = new ArrayList<File>(originalClasses.size());
+		for (Object o : originalClasses) {
+		  File f = (File) o;
+		  if (snapshotClases.contains(f)) {
+		    filesToAnalyze.add(new File(snapshotDirectory, f.getPath()));
+		    System.out.println("Using snapshot class for " + f);
+		  } else {
+		    filesToAnalyze.add(new File(rootDir, f.getPath()));
+		  }
+		}
+		
+		return filesToAnalyze;
 	}
 
 }
