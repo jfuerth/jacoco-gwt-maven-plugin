@@ -85,6 +85,14 @@ public class AgentMojo extends AbstractJacocoMojo {
   private File destFile;
 
   /**
+   * Path to the base directory where snapshot classes are saved.
+   * 
+   * @parameter expression="${jacoco.snapshotDirectory}"
+   *            default-value="${project.build.directory}/snapshot-classes"
+   */
+  private File snapshotDirectory;
+
+  /**
    * If set to true and the execution data file already exists, coverage data is
    * appended to the existing file. If set to false, an existing execution data
    * file will be replaced.
@@ -94,7 +102,7 @@ public class AgentMojo extends AbstractJacocoMojo {
   private Boolean append;
 
   /**
-   * A list of class loader names, that should be excluded from execution
+   * A list of class loader names that should be excluded from execution
    * analysis. The list entries are separated by a colon (:) and may use
    * wildcard characters (* and ?). This option might be required in case of
    * special frameworks that conflict with JaCoCo code instrumentation, in
@@ -104,6 +112,28 @@ public class AgentMojo extends AbstractJacocoMojo {
    * @parameter expression="${jacoco.exclClassLoaders}"
    */
   private String exclClassLoaders;
+
+  /**
+   * A list of class loader names whose classes may be modified at runtime, and
+   * therefore need snapshots taken for the benefit of report generation. The
+   * list entries are separated by a colon (:) and may use wildcard characters
+   * (* and ?). This option is required for the CompilingClassLoader used by
+   * GWTTestCase. It may also be necessary to snapshot classes loaded by other
+   * classloaders that perform similar runtime transformations to classes before
+   * they are defined in the JVM.
+   * 
+   * @parameter expression="${jacoco.snapshotClassLoaders}"
+   *            default-value="*gwt*"
+   */
+  private String snapshotClassLoaders;
+
+  /**
+   * If true, the snapshot agent will print information about its configuration
+   * and its snapshot activities to System.out.
+   * 
+   * @parameter expression="${jacoco.gwt.debugAgent}" default-value="false"
+   */
+  private boolean debugAgent;
 
   /**
    * A session identifier that is written with the execution data. Without this
@@ -163,19 +193,17 @@ public class AgentMojo extends AbstractJacocoMojo {
     final String jacocoVmArgument = StringUtils.quoteAndEscape(
         createAgentOptions().getVMArgument(getJacocoAgentJarFile()), '"');
     final String snapshotVmArgument = StringUtils.quoteAndEscape(
-        "-javaagent:" + getSnapshotAgentJarFile(), '"'); // TODO pass config options from pom through to agent
-    
+        getSnapshotAgentVMArgument(), '"');
+
+    final String vmArgument = snapshotVmArgument + " " + jacocoVmArgument;
     if (isPropertyNameSpecified()) {
-      prependProperty(propertyName, jacocoVmArgument);
-      prependProperty(propertyName, snapshotVmArgument);
+      prependProperty(propertyName, vmArgument);
     }
     else if (isEclipseTestPluginPackaging()) {
-      prependProperty(TYCHO_ARG_LINE, jacocoVmArgument);
-      prependProperty(TYCHO_ARG_LINE, snapshotVmArgument);
+      prependProperty(TYCHO_ARG_LINE, vmArgument);
     }
     else {
-      prependProperty(SUREFIRE_ARG_LINE, jacocoVmArgument);
-      prependProperty(SUREFIRE_ARG_LINE, snapshotVmArgument);
+      prependProperty(SUREFIRE_ARG_LINE, vmArgument);
     }
   }
 
@@ -225,6 +253,34 @@ public class AgentMojo extends AbstractJacocoMojo {
       agentOptions.setPort(port.intValue());
     }
     return agentOptions;
+  }
+
+  private String getSnapshotAgentVMArgument() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("-javaagent:").append(getSnapshotAgentJarFile());
+    boolean first = true;
+    
+    if (debugAgent) {
+      sb.append(first ? "=" : ",");
+      sb.append("debugAgent=true");
+      first = false;
+    }
+
+    if (snapshotDirectory != null) {
+      sb.append(first ? "=" : ",");
+      sb.append("snapshotDirectory=");
+      sb.append(snapshotDirectory.toString());
+      first = false;
+    }
+
+    if (snapshotClassLoaders != null) {
+      sb.append(first ? "=" : ",");
+      sb.append("snapshotClassLoaders=");
+      sb.append(snapshotClassLoaders);
+      first = false;
+    }
+    
+    return sb.toString();
   }
 
   private boolean isPropertyNameSpecified() {

@@ -10,7 +10,7 @@
  *
  *******************************************************************************/
 
-package org.jboss.errai.gwtmaven;
+package org.jboss.errai.gwtmaven.agent;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
-import java.util.regex.Pattern;
+
 
 /**
  * Saves the bytes of classes to the filesystem moments before they are defined
@@ -43,16 +43,25 @@ public class ClassSnapshotSaver implements ClassFileTransformer {
    * Classes will have their snapshots taken only if they are being defined in
    * classloaders whose fully-qualified class name matches this pattern.
    * <p>
-   * Example format for a classloader name that will be matched with this pattern: "org/xyz/TransmogrifyingClassloader"
+   * Example format for a classloader name that will be matched with this pattern:
+   * "org/xyz/TransmogrifyingClassloader"
    */
-  private final Pattern classLoaderPattern;
+  private final WildcardMatcher classLoaderMatcher;
 
   /**
-   * 
+   * If true, the agent will print the names of classes and classloaders to
+   * System.out when snapshots are saved.
+   */
+  private final boolean debug;
+  
+  /**
+   * @param debug
+   *          if true, a line will be printed to System.out every time a class
+   *          snapshot is created.
    * @param baseDir
    *          The base directory under which the package structure for snapshots
    *          will be created.
-   * @param classLoaderPattern
+   * @param classLoaderMatcher
    *          Classes will have their snapshots taken only if they are being
    *          defined in classloaders whose fully-qualified class name matches
    *          this pattern.
@@ -60,9 +69,10 @@ public class ClassSnapshotSaver implements ClassFileTransformer {
    *          Example format for a classloader name that will be matched with
    *          this pattern: "org/xyz/TransmogrifyingClassloader"
    */
-  public ClassSnapshotSaver(File baseDir, Pattern classLoaderPattern) {
+  public ClassSnapshotSaver(boolean debug, File baseDir, WildcardMatcher classLoaderMatcher) {
+    this.debug = debug;
     this.baseDir = baseDir;
-    this.classLoaderPattern = classLoaderPattern;
+    this.classLoaderMatcher = classLoaderMatcher;
     
   }
   
@@ -71,8 +81,10 @@ public class ClassSnapshotSaver implements ClassFileTransformer {
     
     try {
       String loaderClassname = loader == null ? "" : loader.getClass().getName();
-      if (classLoaderPattern.matcher(loaderClassname).matches()) {
-        System.out.println("Taking snapshot of " + loaderClassname + ":" + classname);
+      if (classLoaderMatcher.matches(loaderClassname)) {
+        if (debug) {
+          System.out.println("Taking snapshot of " + loaderClassname + ":" + classname);
+        }
         saveSnapshot(classname, classBytes);
       }
     } catch (Throwable e) {
@@ -97,6 +109,6 @@ public class ClassSnapshotSaver implements ClassFileTransformer {
     } finally {
         out.close();
     }
-}
+  }
 
 }

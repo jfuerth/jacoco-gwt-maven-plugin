@@ -230,6 +230,44 @@ public class ReportMojo extends AbstractJacocoMojo {
     return result;
   }
 
+  /**
+   * Returns the list of compiled classes from the current project, shadowed by
+   * the classes found under {@link #snapshotDirectory}.
+   * <p>
+   * <h2>About shadowing</h2> For the purposes of this class, shadowing is
+   * defined as follows: if set C is made up of the set A <i>shadowed by</i> the
+   * set B, then C contains all items from A that do not have equivalents in B,
+   * plus all items in B that have equivalents in A. Items in B that have no
+   * equivalents in A do not appear in C.
+   * <p>
+   * For example, consider the following directory structure, where
+   * {@code rootDir} is "target/classes" and {@code snapshotDirectory} is
+   * "target/snapshot-classes":
+   * 
+   * <pre>
+   *  target/classes/com/foo/Foo.class
+   *  target/classes/com/foo/Bar.class
+   *  target/snapshot-classes/com/foo/Bar.class
+   *  target/snapshot-classes/com/foo/Baz.class
+   * </pre>
+   * 
+   * the returned set would look like this:
+   * 
+   * <pre>
+   *  target/classes/com/foo/Foo.class
+   *  target/snapshot-classes/com/foo/Bar.class
+   * </pre>
+   * 
+   * Notice the output contains classes com.foo.Foo and com.foo.Bar. The output
+   * does not contain a com.foo.Baz because com.foo.Baz wasn't present under
+   * target/classes. The output uses the snapshot for com.foo.Bar because that
+   * class was present in both locations.
+   * 
+   * @param rootDir
+   *          The directory to look in for classes
+   * @return Absolute paths to the files under rootDir <i>shadowed by</i> the
+   *         equivalent files under {@link #snapshotDirectory} (if any).
+   */
   protected List<File> getFilesToAnalyze(File rootDir) throws IOException {
     final String includes;
     if (getIncludes() != null && !getIncludes().isEmpty()) {
@@ -248,7 +286,7 @@ public class ReportMojo extends AbstractJacocoMojo {
 
     // build two collections of relative pathnames
     List<?> originalClasses = FileUtils.getFiles(rootDir, includes, excludes, false);
-    Set<File> snapshotClases = new HashSet<File>(FileUtils.getFiles(snapshotDirectory, "**", "", false));
+    Set<File> snapshotClases = getSnapshotRelativeFiles();
 
     // now build one list of absolute pathnames, using items from the snapshot
     // list where they exist
@@ -257,7 +295,7 @@ public class ReportMojo extends AbstractJacocoMojo {
       File f = (File) o;
       if (snapshotClases.contains(f)) {
         filesToAnalyze.add(new File(snapshotDirectory, f.getPath()));
-        System.out.println("Using snapshot class for " + f);
+        getLog().debug("Using snapshot class for " + f);
       }
       else {
         filesToAnalyze.add(new File(rootDir, f.getPath()));
@@ -265,6 +303,19 @@ public class ReportMojo extends AbstractJacocoMojo {
     }
 
     return filesToAnalyze;
+  }
+
+  /**
+   * Returns a set of File objects denoting the relative paths of all the files
+   * under {@link #snapshotDirectory}. To turn an item {@code f} from the
+   * returned set into an absolute file, use the statement
+   * {@code new File(snapshotDirectory, f.getPath())}.
+   * 
+   * @return a set of relative paths for all files under {@link #snapshotDirectory}.
+   */
+  @SuppressWarnings("unchecked")
+  private HashSet<File> getSnapshotRelativeFiles() throws IOException {
+    return new HashSet<File>(FileUtils.getFiles(snapshotDirectory, "**", "", false));
   }
 
 }
