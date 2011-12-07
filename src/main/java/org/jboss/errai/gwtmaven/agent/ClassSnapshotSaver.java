@@ -97,8 +97,9 @@ public class ClassSnapshotSaver implements ClassFileTransformer {
   }
 
   private void saveSnapshot(String name, byte[] classBytes) throws IOException {
-    String dir = name.substring(0, name.lastIndexOf('/'));
-    String file = name.substring(name.lastIndexOf('/') + 1) + ".class";
+    int pkgNameLength = name.lastIndexOf('/');
+    String dir = pkgNameLength == -1 ? "" : name.substring(0, pkgNameLength);
+    String file = name.substring(pkgNameLength + 1) + ".class";
 
     File packageDir = new File(baseDir, dir);
     packageDir.mkdirs();
