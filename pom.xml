@@ -13,14 +13,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+<!--
   <parent>
     <groupId>org.jacoco</groupId>
     <artifactId>org.jacoco.build</artifactId>
     <version>0.5.4-SNAPSHOT</version>
   </parent>
-
+ -->
   <groupId>org.jboss.errai</groupId>
   <artifactId>jacoco-gwt-maven-plugin</artifactId>
+  <version>0.5.4-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <name>JaCoCo :: Maven Plugin</name>
@@ -155,7 +157,7 @@
                   <pluginExecutionFilter>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-antrun-plugin</artifactId>
-                    <versionRange>[1.6,)</versionRange>
+                    <versionRange>[1.3,)</versionRange>
                     <goals>
                       <goal>run</goal>
                     </goals>
