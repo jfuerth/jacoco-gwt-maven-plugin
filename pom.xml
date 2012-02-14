@@ -216,4 +216,5 @@
       <url>https://repository.jboss.org/nexus/content/repositories/snapshots/</url>
     </snapshotRepository>
   </distributionManagement>
+  <url>https://github.com/errai/jacoco-gwt-maven-plugin</url>
 </project>
