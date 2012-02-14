@@ -15,11 +15,43 @@
 
   <groupId>org.jboss.errai</groupId>
   <artifactId>jacoco-gwt-maven-plugin</artifactId>
-  <version>0.5.4-SNAPSHOT</version>
+  <version>0.5.4.201202141554</version>
   <packaging>maven-plugin</packaging>
 
   <name>JaCoCo :: GWT Maven Plugin</name>
-  <description>The JaCoCo GWT Maven Plugin provides test coverage monitoring and reporting for GWTTestCase tests run under Maven.</description>
+  <description>
+    The JaCoCo GWT Maven Plugin provides test coverage monitoring and reporting for GWTTestCase tests run under Maven.
+
+    Based on the jacoco-maven-plugin project by Evgeny Mandrikov and Marc R. Hoffmann.
+
+    Developed as part of the Errai framework.
+  </description>
+
+  <organization>
+    <name>JBoss, by Red Hat</name>
+    <url>http://www.jboss.org/</url>
+  </organization>
+  <developers>
+    <developer>
+      <name>Jonathan Fuerth</name>
+    </developer>
+    <developer>
+      <name>Christian Sadilek</name>
+    </developer>
+  </developers>
+  <scm>
+    <url>https://github.com/errai/jacoco-gwt-maven-plugin</url>
+  </scm>
+  <issueManagement>
+    <system>jira</system>
+    <url>http://jira.jboss.org/jira/browse/ERRAI</url>
+  </issueManagement>
+  <licenses>
+    <license>
+      <name>Eclipse Public License v1.0</name>
+      <url>http://www.eclipse.org/legal/epl-v10.html</url>
+    </license>
+  </licenses>
 
   <prerequisites>
     <maven>2.1.0</maven>
