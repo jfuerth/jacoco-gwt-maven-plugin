@@ -1,0 +1,117 @@
+= JaCoCo-GWT Maven Plugin
+
+This plugin makes it possible to collect and report on test coverage
+from tests that extend GWTTestCase.
+
+== Setup
+
+Add the following to the `<plugins>` section of your pom.xml:
+
+[source,xml]
+------
+<plugin>
+  <groupId>org.jboss.errai</groupId>
+  <artifactId>jacoco-gwt-maven-plugin</artifactId>
+  <version>0.5.4.201202141554</version>
+  <executions>
+    <execution>
+      <id>jacoco-initialize</id>
+      <phase>initialize</phase>
+      <goals>
+        <goal>prepare-agent</goal>
+      </goals>
+      <configuration>
+        <propertyName>jacocoArgs</propertyName>
+      </configuration>
+    </execution>
+    <execution>
+      <id>jacoco-site</id>
+      <phase>site</phase>
+      <goals>
+        <goal>report</goal>
+      </goals>
+    </execution>
+  </executions>
+</plugin>
+------
+
+And add this to the `<configuration>` section of `maven-surefire-plugin`:
+
+[source,xml]
+------
+<argLine>${jacocoArgs} ${argLine}</argLine>
+------
+
+(the default for `<argLine>` is `${argLine}`, so it's best to include
+that when you modify the settings. This JaCoCo plugin doesn't require
+it, so feel free to omit `${argLine}` if you need to.)
+
+== How to use it
+
+=== Collect Test Coverage Data
+
+[source]
+------
+% mvn test
+------
+
+JaCoCo will record its coverage information into `target/jacoco.exec`
+as usual, and our agent will record snapshots of GWTTestCase's
+runtime-modified classes under `target/snapshot-classes` (but this
+isn't important unless you care how it works).
+
+=== Report on the Collected Data
+
+[source]
+------
+% mvn site               # (for the full project site; see site-maven-plugin)
+  - or -
+% mvn jacoco-gwt:report  # (for just the JaCoCo HTML report)
+------
+
+JaCoCo will create a bunch of HTML pages that outline code coverage,
+including coverage in client-side code that was exercised by
+GWTTestCases. Find these reports under `target/site/jacoco`.
+
+NOTE: For client-side-only classes that are exercised by both unit
+tests and GWTTestCases, only the coverage from the GWTTestCases will
+be included in the report. The coverage information from both types of
+tests exists in jacoco.exec, but the reporting gives precedence to the
+GWTTestCase coverage.
+
+
+== How This Plugin Works
+
+Note: you don't need to read this part to use the plugin. It's just
+here for the sake of interest.
+
+JaCoCo works in two phases:
+
+. While code is running, a Java Agent records the hash of classes as
+they are loaded, then instruments those classes to log information
+about which code was executed. This information is typically appended
+to a file called `jacoco.exec` when the VM shuts down.
+
+. At some later time, the JaCoCo reporting tool reads the
+`jacoco.exec` file and attempts to read the associated .class files
+from the project's classpath. If the class files it finds don't match
+the hash that was computed by the agent in step 1, the reporting tool
+ignores the coverage information for that class (it assumes the
+classes have been recompiled, so the branches and line numbers won't
+necessarily match up anymore).
+
+The crux of the problem between GWTTestCase and vanilla JaCoCo is that
+GWTTestCase uses a ClassLoader that modifies .class files as they are
+loaded. Unfortunately, this happens _before_ the JaCoCo agent gets a
+chance to record the hash of the raw on-disk class file. When step 2
+comes around, JaCoCo's reporting tool notices the mismatch in class
+file contents, and ignores all the client-side code that was modified
+by the GWTTestCase.
+
+This plugin solves the problem by inserting a new Java Agent which
+runs after GWTTestCase's ClassLoader and before JaCoCo's own
+agent. This new agent simply saves GWT's modified version of the
+.class file under the target/ directory. Then, with a small
+modification to the reporting plugin, these "snapshot classes" are
+included in the search for .class files when it comes time to build
+the report.
